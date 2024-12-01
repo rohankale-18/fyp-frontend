@@ -1,7 +1,11 @@
 import { createPortal } from "react-dom";
 
-export default function Modal({ onClose, children }) {
-  // Ensure modal renders outside of the current DOM hierarchy
+interface ModalProps {
+  onClose: () => void; // Callback function to close the modal
+  children: React.ReactNode; // Content to render inside the modal
+}
+
+const Modal: React.FC<ModalProps> = ({ onClose, children }) => {
   return createPortal(
     <>
       {/* Backdrop */}
@@ -26,6 +30,8 @@ export default function Modal({ onClose, children }) {
         </div>
       </div>
     </>,
-    document.getElementById("modal-root") // Assumes you have a div with id 'modal-root' in your HTML
+    document.getElementById("modal-root") as HTMLElement // Type assertion to HTMLElement
   );
-}
+};
+
+export default Modal;

@@ -1,6 +1,3 @@
-"use client";
-
-import { TrendingUp } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import {
@@ -20,15 +17,6 @@ import {
 
 export const description = "A linear area chart";
 
-const chartData = [
-  { month: "January", desktop: 186 },
-  { month: "February", desktop: 305 },
-  { month: "March", desktop: 237 },
-  { month: "April", desktop: 73 },
-  { month: "May", desktop: 209 },
-  { month: "June", desktop: 214 },
-];
-
 const chartConfig = {
   desktop: {
     label: "Desktop",
@@ -36,8 +24,8 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-const calculateMinMax = (data, key) => {
-  const values = data.map((entry) => entry[key]);
+const calculateMinMax = (data: any, key: string) => {
+  const values = data.map((entry: any) => entry[key]);
   const minValue = Math.min(...values);
   const maxValue = Math.max(...values);
   return { minValue, maxValue };

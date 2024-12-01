@@ -1,9 +1,7 @@
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -90,12 +88,12 @@ export function MaintenanceTable() {
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: any) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     // Create a new entry
@@ -105,7 +103,7 @@ export function MaintenanceTable() {
     };
 
     // Update state with new entry
-    setMaintenanceData((prevData) => [...prevData, newEntry]);
+    setMaintenanceData((prevData: any) => [...prevData, newEntry]);
 
     // Reset form data
     setFormData({
