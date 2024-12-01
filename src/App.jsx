@@ -1,7 +1,7 @@
 import ChartComponent from "./components/ChartComponent";
 import MaintenanceTable from "./components/MaintenanceTable";
 function App() {
-  const formatTime = (hour: number) => {
+  const formatTime = (hour) => {
     return hour < 10 ? `0${hour}:00` : `${hour}:00`;
   };
 
