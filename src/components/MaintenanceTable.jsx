@@ -7,82 +7,18 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import Modal from "./Modal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createEntry, getGeneratorData } from "@/api/generatorData";
 
 export function MaintenanceTable() {
-	const [maintenanceData, setMaintenanceData] = useState([
-		{
-			id: 1,
-			generatorId: "GEN001",
-			maintenanceDetail: "Oil Change",
-			status: "Completed",
-			personName: "John Doe",
-			date: "2024-09-01",
-			actions: "View Details",
-		},
-		{
-			id: 2,
-			generatorId: "GEN002",
-			maintenanceDetail: "Battery Replacement",
-			status: "Pending",
-			personName: "Jane Smith",
-			date: "2024-09-05",
-			actions: "View Details",
-		},
-		{
-			id: 3,
-			generatorId: "GEN003",
-			maintenanceDetail: "Filter Change",
-			status: "In Progress",
-			personName: "Alice Brown",
-			date: "2024-09-10",
-			actions: "View Details",
-		},
-		{
-			id: 4,
-			generatorId: "GEN004",
-			maintenanceDetail: "Coolant Refill",
-			status: "Completed",
-			personName: "Bob Johnson",
-			date: "2024-09-12",
-			actions: "View Details",
-		},
-		{
-			id: 5,
-			generatorId: "GEN005",
-			maintenanceDetail: "Inspection",
-			status: "Scheduled",
-			personName: "Charlie Davis",
-			date: "2024-09-15",
-			actions: "View Details",
-		},
-		{
-			id: 6,
-			generatorId: "GEN006",
-			maintenanceDetail: "Fuel System Check",
-			status: "Pending",
-			personName: "David Lee",
-			date: "2024-09-18",
-			actions: "View Details",
-		},
-		{
-			id: 7,
-			generatorId: "GEN007",
-			maintenanceDetail: "Alternator Repair",
-			status: "Completed",
-			personName: "Emily Clark",
-			date: "2024-09-20",
-			actions: "View Details",
-		},
-	]);
+	const [maintenanceData, setMaintenanceData] = useState([]);
 
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [formData, setFormData] = useState({
-		generatorId: "",
-		maintenanceDetail: "",
+		generator_id: "",
+		maintenance_detail: "",
 		status: "Pending",
-		personName: "",
-		date: "",
+		name_of_person: "",
 	});
 
 	const handleOpenModal = () => setIsModalOpen(true);
@@ -93,29 +29,34 @@ export function MaintenanceTable() {
 		setFormData((prev) => ({ ...prev, [name]: value }));
 	};
 
-	const handleFormSubmit = (e) => {
+	const fetchData = async () => {
+		const data = await getGeneratorData();
+		console.log(data);
+		setMaintenanceData(data);
+	}
+	const handleFormSubmit = async (e) => {
 		e.preventDefault();
-
-		// Create a new entry
-		const newEntry = {
-			id: maintenanceData.length + 1, // Generate a new ID
-			...formData,
-		};
-
-		// Update state with new entry
-		setMaintenanceData((prevData) => [...prevData, newEntry]);
-
+		await createEntry(formData);
 		// Reset form data
 		setFormData({
-			generatorId: "",
-			maintenanceDetail: "",
+			generator_id: "",
+			maintenance_detail: "",
 			status: "Pending",
-			personName: "",
-			date: "",
+			name_of_person: "",
 		});
+		fetchData();
 
 		// Close modal
 		handleCloseModal();
+	};
+
+	useEffect(() => {
+		fetchData();
+	}, [])
+
+	const formatDate = (isoDateString) => {
+		const date = new Date(isoDateString); // Convert the ISO string to a Date object
+		return date.toLocaleDateString('en-GB'); // Format as 'dd/mm/yyyy'
 	};
 
 	return (
@@ -129,21 +70,17 @@ export function MaintenanceTable() {
 						<TableHead>Status</TableHead>
 						<TableHead>Name of Person</TableHead>
 						<TableHead>Date</TableHead>
-						<TableHead>Actions</TableHead>
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{maintenanceData.map((data) => (
+					{maintenanceData.map((data, index) => (
 						<TableRow key={data.id}>
-							<TableCell className="font-medium">{data.id}</TableCell>
-							<TableCell>{data.generatorId}</TableCell>
-							<TableCell>{data.maintenanceDetail}</TableCell>
+							<TableCell className="font-medium">{index + 1}</TableCell>
+							<TableCell>{data.generator_id}</TableCell>
+							<TableCell>{data.maintenance_detail}</TableCell>
 							<TableCell>{data.status}</TableCell>
-							<TableCell>{data.personName}</TableCell>
-							<TableCell>{data.date}</TableCell>
-							<TableCell>
-								<button className="text-blue-500">{data.actions}</button>
-							</TableCell>
+							<TableCell>{data.name_of_person}</TableCell>
+							<TableCell>{formatDate(data.created_at)}</TableCell>
 						</TableRow>
 					))}
 				</TableBody>
@@ -152,7 +89,7 @@ export function MaintenanceTable() {
 			{/* Button to open modal */}
 			<button
 				onClick={handleOpenModal}
-				className="mt-4 bg-blue-500 text-white py-2 px-4 rounded"
+				className="mt-4 bg-blue-500/90 hover:bg-blue-500/85 transition-colors duration-200 ease-in-out text-white py-2 px-4 rounded"
 			>
 				Add New Entry
 			</button>
@@ -163,16 +100,16 @@ export function MaintenanceTable() {
 					<form onSubmit={handleFormSubmit} className="space-y-4 p-4">
 						<div>
 							<label
-								htmlFor="generatorId"
+								htmlFor="generator_id"
 								className="block text-sm font-medium"
 							>
 								Generator ID
 							</label>
 							<input
 								type="text"
-								id="generatorId"
-								name="generatorId"
-								value={formData.generatorId}
+								id="generator_id"
+								name="generator_id"
+								value={formData.generator_id}
 								onChange={handleInputChange}
 								className="border border-gray-300 rounded px-2 py-1 mt-1 block w-full"
 								required
@@ -181,16 +118,16 @@ export function MaintenanceTable() {
 
 						<div>
 							<label
-								htmlFor="maintenanceDetail"
+								htmlFor="maintenance_detail"
 								className="block text-sm font-medium"
 							>
 								Maintenance Detail
 							</label>
 							<input
 								type="text"
-								id="maintenanceDetail"
-								name="maintenanceDetail"
-								value={formData.maintenanceDetail}
+								id="maintenance_detail"
+								name="maintenance_detail"
+								value={formData.maintenance_detail}
 								onChange={handleInputChange}
 								className="border border-gray-300 rounded px-2 py-1 mt-1 block w-full"
 								required
@@ -217,29 +154,14 @@ export function MaintenanceTable() {
 						</div>
 
 						<div>
-							<label htmlFor="personName" className="block text-sm font-medium">
+							<label htmlFor="name_of_person" className="block text-sm font-medium">
 								Name of Person
 							</label>
 							<input
 								type="text"
-								id="personName"
-								name="personName"
-								value={formData.personName}
-								onChange={handleInputChange}
-								className="border border-gray-300 rounded px-2 py-1 mt-1 block w-full"
-								required
-							/>
-						</div>
-
-						<div>
-							<label htmlFor="date" className="block text-sm font-medium">
-								Date
-							</label>
-							<input
-								type="date"
-								id="date"
-								name="date"
-								value={formData.date}
+								id="name_of_person"
+								name="name_of_person"
+								value={formData.name_of_person}
 								onChange={handleInputChange}
 								className="border border-gray-300 rounded px-2 py-1 mt-1 block w-full"
 								required

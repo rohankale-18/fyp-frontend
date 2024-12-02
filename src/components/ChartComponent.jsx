@@ -39,7 +39,7 @@ export function ChartComponent({
 }) {
 	const { minValue, maxValue } = calculateMinMax(chartData, dataKey);
 	return (
-		<Card className="h-full">
+		<Card className="h-fit">
 			<CardHeader>
 				<CardTitle>{title}</CardTitle>
 				<CardDescription>{description}</CardDescription>
@@ -66,7 +66,7 @@ export function ChartComponent({
 							axisLine={false}
 							tickLine={false}
 							tickMargin={8}
-							domain={[minValue - 120, maxValue + 50]} // Set custom domain
+							domain={[Math.max(minValue - 120, 0), maxValue + 50]} // Set custom domain
 						/>
 						<ChartTooltip
 							cursor={false}
