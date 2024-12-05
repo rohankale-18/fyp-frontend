@@ -31,7 +31,7 @@ export function MaintenanceTable() {
 
 	const fetchData = async () => {
 		const data = await getGeneratorData();
-		console.log(data);
+		// console.log(data);
 		setMaintenanceData(data);
 	}
 	const handleFormSubmit = async (e) => {

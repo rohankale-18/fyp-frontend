@@ -1,119 +1,250 @@
-import ChartComponent from '@/components/ChartComponent';
-import MaintenanceTable from '@/components/MaintenanceTable';
-import React from 'react'
-import { useNavigate } from 'react-router-dom';
+// import React, { useState, useEffect } from "react";
+// import ChartComponent from "@/components/ChartComponent";
+// import MaintenanceTable from "@/components/MaintenanceTable";
+// import { useNavigate } from "react-router-dom";
+// import axiosInstance from "@/api/axiosInstance";
+// import { set } from "date-fns";
+
+// const Dashboard = () => {
+// 	const navigate = useNavigate();
+
+// 	const [humidityData, setHumidityData] = useState([]);
+// 	const [temperatureData, setTemperatureData] = useState([]);
+// 	const [voltageData, setVoltageData] = useState([]);
+// 	const [thirty, setThirty] = useState(false);
+// 	const [val, setVal] = useState(0);
+
+// 	// Function to generate random data
+// 	const generateRandomData = (min, max) => {
+// 		return Math.random() * (max - min) + min;
+// 	};
+
+// 	const sendToPredict = async (data) => {
+// 		try {
+// 			const response = await axiosInstance.post("/predict", data);
+// 			console.log("Prediction response:", response.data.prediction);
+// 			// setVal(response.data.prediction[0]);
+// 		} catch (error) {
+// 			console.error("Error sending data to /predict:", error);
+// 		}
+// 	};
+
+// 	useEffect(() => {
+// 		const interval = setInterval(() => {
+// 			setVal(1);
+// 			const timeout = setTimeout(() => {
+// 				setVal(0);
+// 			}, 5000);
+
+// 			return () => clearTimeout(timeout); // Cleanup timeout
+// 		}, 20000);
+
+// 		return () => clearInterval(interval); // Cleanup interval
+// 	}, []);
+
+
+// 	useEffect(() => {
+// 		const interval = setInterval(() => {
+// 			const timestamp = new Date();
+
+// 			const newHumidity = {
+// 				time: timestamp.toLocaleTimeString(),
+// 				value: 49,
+// 			};
+// 			const newTemperature = {
+// 				time: timestamp.toLocaleTimeString(),
+// 				value: parseFloat(generateRandomData(15, 35).toFixed(2)),
+// 			};
+
+// 			const newVoltage = {
+// 				time: timestamp.toLocaleTimeString(),
+// 				value: thirty ? 219 : parseFloat(generateRandomData(220, 240).toFixed(2)),
+// 			};
+
+// 			setHumidityData((prev) => [...prev.slice(-19), newHumidity]);
+// 			setTemperatureData((prev) => [...prev.slice(-19), newTemperature]);
+// 			setVoltageData((prev) => [...prev.slice(-19), newVoltage]);
+
+// 			const dataToSend = {
+// 				Vrms: newVoltage.value,
+// 				Humidity: newHumidity.value,
+// 				Temperature: newTemperature.value,
+// 				Vmax: newVoltage.value * 1.414, // Example derived value
+// 			};
+
+// 			sendToPredict(dataToSend);
+// 		}, 5000);
+
+// 		return () => clearInterval(interval); // Cleanup on unmount
+// 	}, [thirty]);
+
+// 	const handleLogout = () => {
+// 		localStorage.removeItem("auth-token");
+// 		navigate("/login");
+// 	};
+// 	console.log('val', val)
+
+// 	return (
+// 		<div className="flex flex-col items-center gap-5 pb-10">
+// 			{val === 1 ?
+// 				<div className="bg-orange-300 w-full py-8 text-center text-2xl font-semibold">
+// 					Voltage level dropped below the threshold!!! Turning on the Generator.
+// 				</div>
+// 				:
+// 				<></>
+// 			}
+// 			<div className="w-full flex justify-end items-center p-4">
+// 				<button
+// 					onClick={handleLogout}
+// 					className="bg-black/80 hover:bg-black/75 text-white py-1.5 px-4 rounded"
+// 				>
+// 					Log out
+// 				</button>
+// 			</div>
+// 			<h1 className="text-center font-bold text-3xl pb-5">Generator Maintenance Dashboard</h1>
+// 			<div className="w-[90%] h-fit grid lg:grid-cols-2 gap-4">
+// 				<ChartComponent
+// 					title="Voltage v/s Time (real-time)"
+// 					chartData={voltageData}
+// 					dataKey="value"
+// 				/>
+// 				<ChartComponent
+// 					title="Humidity v/s Time (real-time)"
+// 					chartData={humidityData}
+// 					dataKey="value"
+// 				/>
+// 				<ChartComponent
+// 					title="Temperature v/s Time (real-time)"
+// 					chartData={temperatureData}
+// 					dataKey="value"
+// 				/>
+// 			</div>
+// 			<div className="w-[90%] space-y-2">
+// 				<h1 className="font-bold text-lg">Maintenance Logs Table</h1>
+// 				<MaintenanceTable />
+// 			</div>
+// 		</div>
+// 	);
+// };
+
+// export default Dashboard;
+
+import React, { useState, useEffect } from "react";
+import ChartComponent from "@/components/ChartComponent";
+import MaintenanceTable from "@/components/MaintenanceTable";
+import { useNavigate } from "react-router-dom";
+import axiosInstance from "@/api/axiosInstance"; // Ensure axiosInstance is imported correctly
 
 const Dashboard = () => {
 	const navigate = useNavigate();
-	const formatTime = (hour) => {
-		return hour < 10 ? `0${hour}:00` : `${hour}:00`;
+
+	const [humidityData, setHumidityData] = useState([]);
+	const [temperatureData, setTemperatureData] = useState([]);
+	const [voltageData, setVoltageData] = useState([]);
+	const [turnOnGen, setTurnOnGen] = useState(false);
+
+	// Function to generate random data
+	const generateRandomData = (min, max) => {
+		return Math.random() * (max - min) + min;
 	};
+
+	const sendToPredict = async (data) => {
+		try {
+			const response = await axiosInstance.post("/predict", data);
+			console.log("Prediction response:", response.data.prediction);
+			setTurnOnGen(response.data.prediction[0]);
+		} catch (error) {
+			console.error("Error sending data to /predict:", error);
+		}
+	};
+
+	useEffect(() => {
+		const interval = setInterval(() => {
+			const timestamp = new Date();
+
+			const newHumidity = {
+				time: timestamp.toLocaleTimeString(),
+				value: parseFloat(generateRandomData(49.5, 51).toFixed(2)),
+			};
+			const newTemperature = {
+				time: timestamp.toLocaleTimeString(),
+				value: parseFloat(generateRandomData(33, 35).toFixed(2)),
+			};
+			const newVoltage = {
+				time: timestamp.toLocaleTimeString(),
+				value: parseFloat(generateRandomData(219, 222).toFixed(2)),
+			};
+
+			// Update state for charts
+			setHumidityData((prev) => [...prev.slice(-19), newHumidity]);
+			setTemperatureData((prev) => [...prev.slice(-19), newTemperature]);
+			setVoltageData((prev) => [...prev.slice(-19), newVoltage]);
+
+			// Prepare data for prediction
+			const dataToSend = {
+				Vrms: newVoltage.value,
+				Humidity: newHumidity.value,
+				Temperature: newTemperature.value,
+				Vmax: newVoltage.value * 1.414, // Example derived value
+			};
+
+			// Send data to the backend
+			sendToPredict(dataToSend);
+		}, 5000);
+
+		return () => clearInterval(interval); // Cleanup on unmount
+	}, []);
 
 	const handleLogout = () => {
 		localStorage.removeItem("auth-token");
 		navigate("/login");
 	};
 
-	const chartData1 = [
-		{ time: "10:00:00", Vrms: 287 },
-		{ time: "10:00:05", Vrms: 295 },
-		{ time: "10:00:10", Vrms: 315 },
-		{ time: "10:00:15", Vrms: 301 },
-		{ time: "10:00:20", Vrms: 310 },
-		{ time: "10:00:25", Vrms: 330 },
-		{ time: "10:00:30", Vrms: 304 },
-		{ time: "10:00:35", Vrms: 288 },
-		{ time: "10:00:40", Vrms: 301 },
-		{ time: "10:00:45", Vrms: 312 },
-		{ time: "10:00:50", Vrms: 318 },
-		{ time: "10:00:55", Vrms: 311 },
-		{ time: "10:01:00", Vrms: 300 },
-		{ time: "10:00:05", Vrms: 299 },
-		{ time: "10:00:15", Vrms: 315 },
-		{ time: "10:00:20", Vrms: 312 },
-		{ time: "10:00:25", Vrms: 300 },
-		{ time: "10:00:30", Vrms: 280 },
-		{ time: "10:00:35", Vrms: 305 },
-		{ time: "10:00:40", Vrms: 295 },
-	];
-	const chartData2 = [
-		{ time: formatTime(12), Vrms: 202.93 },
-		{ time: formatTime(1), Vrms: 208.59 },
-		{ time: formatTime(2), Vrms: 222.73 },
-		{ time: formatTime(3), Vrms: 212.84 },
-		{ time: formatTime(4), Vrms: 219.2 },
-		{ time: formatTime(5), Vrms: 233.35 },
-		{ time: formatTime(6), Vrms: 214.96 },
-	];
-	const chartData3 = [
-		{ time: formatTime(12), Temperature: 35 },
-		{ time: formatTime(1), Temperature: 34 },
-		{ time: formatTime(2), Temperature: 35.8 },
-		{ time: formatTime(3), Temperature: 37.4 },
-		{ time: formatTime(4), Temperature: 36.5 },
-		{ time: formatTime(5), Temperature: 35.1 },
-		{ time: formatTime(6), Temperature: 34.5 },
-	];
-	const chartData4 = [
-		{ time: formatTime(12), Humidity: 70 },
-		{ time: formatTime(1), Humidity: 77 },
-		{ time: formatTime(2), Humidity: 78 },
-		{ time: formatTime(3), Humidity: 55 },
-		{ time: formatTime(4), Humidity: 65 },
-		{ time: formatTime(5), Humidity: 51 },
-		{ time: formatTime(6), Humidity: 59 },
-	]
-
 	return (
 		<div className="flex flex-col items-center gap-5 pb-10 relative">
-			{/* <div className='fixed top-0 w-full bg-[#ff9c32] z-[100] text-center text-3xl py-4 font-semibold text-white'>
-				Turning on the Generator
-			</div> */}
-			<div className='w-full flex justify-end items-center p-4'>
-				<button onClick={handleLogout} className='top-4 right-4 bg-black/80 hover:bg-black/75 transition-colors duration-200 ease-in-out text-white py-1.5 px-4 rounded'>
+			{turnOnGen === 1 ? (
+				<div className="w-full bg-orange-300 text-2xl font-semibold py-6 text-center sticky top-0 z-[10000]">
+					Voltage dropped below threshold!!! Turning on Generator.
+				</div>
+			) : null}
+			<div className="w-full flex justify-end items-center p-4">
+				<button
+					onClick={handleLogout}
+					className="bg-black/80 hover:bg-black/75 text-white py-1.5 px-4 rounded"
+				>
 					Log out
 				</button>
 			</div>
-			<h1 className="text-center font-bold text-3xl pb-5">
-				Generator Maintenance Dashboard
-			</h1>
-			{/* <h1 className="font-bold text-lg text-left w-full px-[5%] py-2">Generator Status</h1> */}
+			<h1 className="text-center font-bold text-3xl pb-5">Generator Maintenance Dashboard</h1>
 			<div className="w-[90%] h-fit grid lg:grid-cols-2 gap-4">
-				<div className="w-full max-h-[500px]">
-					<ChartComponent
-						title={"Vrms v/s Time (real-time data)"}
-						chartData={chartData1}
-						dataKey="Vrms"
-					/>
-				</div>
-				<div className="w-full h-[500px]">
-					<ChartComponent
-						title={"Vrms v/s Time (hourly data)"}
-						chartData={chartData2}
-						dataKey="Vrms"
-					/>
-				</div>
-				<div className="w-full h-[500px]">
-					<ChartComponent
-						title={"Temperature v/s Time (hourly data)"}
-						chartData={chartData3}
-						dataKey="Temperature"
-					/>
-				</div>
-				<div className="w-full h-[500px]">
-					<ChartComponent
-						title={"Humidity v/s Time (hourly data)"}
-						chartData={chartData4}
-						dataKey="Humidity"
-					/>
-				</div>
+				<ChartComponent
+					title="Voltage v/s Time (real-time)"
+					chartData={voltageData}
+					dataKey="value"
+					maxValue={300}
+					minValue={0}
+				/>
+				<ChartComponent
+					title="Humidity v/s Time (real-time)"
+					chartData={humidityData}
+					dataKey="value"
+					maxValue={100}
+					minValue={0}
+				/>
+				<ChartComponent
+					title="Temperature v/s Time (real-time)"
+					chartData={temperatureData}
+					dataKey="value"
+					maxValue={70}
+					minValue={0}
+				/>
 			</div>
 			<div className="w-[90%] space-y-2">
 				<h1 className="font-bold text-lg">Maintenance Logs Table</h1>
 				<MaintenanceTable />
 			</div>
 		</div>
-	)
-}
+	);
+};
 
-export default Dashboard
+export default Dashboard;
